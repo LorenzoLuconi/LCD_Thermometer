@@ -22,6 +22,10 @@ bool first = true;
 int buttonState = LOW;
 int prevButtonState = LOW;
 
+int displayIsOn = false;
+
+int displayMode = 0;
+
 long tempReadTime = 0;
 long displayOnTime = 0;
 
@@ -33,6 +37,7 @@ void setup() {
   
   lcd.begin(16,2);
 }
+
 
 void loop() {
   if ( tempReadTime == 0 || tempReadTime + TEMP_READ_INTERVAL < millis()) {
@@ -46,9 +51,9 @@ void loop() {
     maxTemp.temp = max(maxTemp.temp, actualTemp.temp);
     maxTemp.humidity = max(maxTemp.humidity, actualTemp.humidity);
 
-    Serial.println("Min:");
+    Serial.print("Min - ");
     serialWrite(minTemp);
-    Serial.println("Max:");
+    Serial.print("Max - ");
     serialWrite(maxTemp);
 
     tempReadTime = millis();
@@ -56,10 +61,38 @@ void loop() {
 
   int buttonState = digitalRead(BUTTON_PIN);
 
-  if ( first || buttonState == HIGH ) {
+  if ( first || ( buttonState == HIGH && prevButtonState == LOW ) ) {
+    displayMode++;
     first = false;
-    lcdWrite(actualTemp);
-    displayOn();
+
+    switch ( displayMode ) {
+      case 1:
+        lcdWrite(actualTemp);
+      break;
+      case 2:
+        lcd.clear();
+        lcd.setCursor( 0, 0 );
+        lcd.print("MIN: ");
+      break;
+      case 3:
+        lcd.clear();
+        lcd.setCursor( 0, 0 );
+        lcd.print("MAX: ");
+      break;
+      
+      default:
+      break;
+    }
+      
+    displayOn();  
+    
+    if ( displayMode > 3 ) {
+      displayMode = 0;
+    }
+    prevButtonState = HIGH;
+    delay(200);
+  } else {
+    prevButtonState = LOW;
   }
   
   displayOff();
@@ -68,7 +101,6 @@ void loop() {
 Temp readTemp() {
   int val_Adc = analogRead(TEMP_PIN);
   float voltage = (val_Adc /1024.0) * 5.0;
-  //float temp = ;
   
   return Temp { (voltage - .5) * 100, 0 };
 }
@@ -102,12 +134,15 @@ void displayOn() {
   displayOnTime = millis();
   lcd.display();
   digitalWrite(BACK_LIGHT_PIN, HIGH);
+  displayIsOn = true;
 }
 
 void displayOff() {
-  if ( displayOnTime + DISPLAY_ON_INTERVAL < millis() ) {
+  
+  if ( displayIsOn && displayOnTime + DISPLAY_ON_INTERVAL < millis() ) {
     lcd.noDisplay();
     digitalWrite(BACK_LIGHT_PIN, LOW);
+    displayIsOn = false;
   }
 }
 
