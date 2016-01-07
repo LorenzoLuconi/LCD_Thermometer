@@ -49,9 +49,9 @@ void loop() {
     first = false;
     lcdWrite(actualTemp);
     displayOn();
-    delay(DISPLAY_ON_INTERVAL);
-    displayOff();
   }
+  
+  displayOff();
 }
 
 Temp readTemp() {
@@ -88,13 +88,16 @@ void serialWrite(Temp t) {
 }
 
 void displayOn() {
+  displayOnTime = millis();
   lcd.display();
   digitalWrite(BACK_LIGHT_PIN, HIGH);
 }
 
 void displayOff() {
-  lcd.noDisplay();
-  digitalWrite(BACK_LIGHT_PIN, LOW);
+  if ( displayOnTime + DISPLAY_ON_INTERVAL < millis() ) {
+    lcd.noDisplay();
+    digitalWrite(BACK_LIGHT_PIN, LOW);
+  }
 }
 
 
