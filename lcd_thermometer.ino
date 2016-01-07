@@ -14,7 +14,7 @@ typedef struct temperature {
   float humidity;
 } Temp;
 
-Temp minTemp = { 0, 0 };
+Temp minTemp = { 2000.0, 2000.0 };
 Temp maxTemp = { 0, 0 };
 Temp actualTemp;
 bool first = true;
@@ -36,9 +36,20 @@ void setup() {
 
 void loop() {
   if ( tempReadTime == 0 || tempReadTime + TEMP_READ_INTERVAL < millis()) {
-    
+
     actualTemp = readTemp();
     serialWrite(actualTemp);
+    
+    minTemp.temp = min(minTemp.temp, actualTemp.temp);
+    minTemp.humidity = min(minTemp.humidity, actualTemp.humidity);
+
+    maxTemp.temp = max(maxTemp.temp, actualTemp.temp);
+    maxTemp.humidity = max(maxTemp.humidity, actualTemp.humidity);
+
+    Serial.println("Min:");
+    serialWrite(minTemp);
+    Serial.println("Max:");
+    serialWrite(maxTemp);
 
     tempReadTime = millis();
   }
