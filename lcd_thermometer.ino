@@ -1,5 +1,10 @@
+#include <DHT.h>
 #include <LiquidCrystal.h>
 
+#define DHTPIN 8
+#define DHTTYPE DHT22
+
+DHT dht(DHTPIN, DHTTYPE);
 LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
 
 const int BACK_LIGHT_PIN = 13;
@@ -7,7 +12,7 @@ const int TEMP_PIN = 0;
 const int BUTTON_PIN = 7;
 
 const int DISPLAY_ON_INTERVAL = 10000;
-const int TEMP_READ_INTERVAL = 30000;
+const long TEMP_READ_INTERVAL = 60000 * 5;
 
 typedef struct temperature {
   float temp;
@@ -31,8 +36,11 @@ void setup() {
   
   pinMode(BACK_LIGHT_PIN, OUTPUT);
   pinMode(BUTTON_PIN, INPUT);
+  pinMode(DHTPIN, INPUT);
   
   lcd.begin(16,2);
+  // Delay for DHT22 initialization
+  delay(2000);
 }
 
 
@@ -98,10 +106,7 @@ void loop() {
 }
 
 Temp readTemp() {
-  int val_Adc = analogRead(TEMP_PIN);
-  float voltage = (val_Adc /1024.0) * 5.0;
-  
-  return Temp { (voltage - .5) * 100, 0 };
+  return Temp { dht.readTemperature(), dht.readHumidity() };
 }
 
 void lcdWrite(Temp t) {
