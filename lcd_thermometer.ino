@@ -6,12 +6,24 @@ const int BACK_LIGHT_PIN = 13;
 const int TEMP_PIN = 0;
 const int BUTTON_PIN = 7;
 
-const int TIME_ON = 10000;
+const int DISPLAY_ON_INTERVAL = 10000;
+const int TEMP_READ_INTERVAL = 30000;
 
-typedef struct {
+typedef struct temperature {
   float temp;
   float humidity;
 } Temp;
+
+Temp minTemp = { 0, 0 };
+Temp maxTemp = { 0, 0 };
+Temp actualTemp;
+bool first = true;
+
+int buttonState = LOW;
+int prevButtonState = LOW;
+
+long tempReadTime = 0;
+long displayOnTime = 0;
 
 void setup() {
   Serial.begin(9600);
@@ -20,29 +32,24 @@ void setup() {
   pinMode(BUTTON_PIN, INPUT);
   
   lcd.begin(16,2);
-  lcd.clear();
-  lcd.setCursor( 0, 0 );
-  lcd.print( "Thermometer ...");
-
-  displayOn();
-  delay(2000);
-  displayOff();
 }
 
 void loop() {
+  if ( tempReadTime == 0 || tempReadTime + TEMP_READ_INTERVAL < millis()) {
+    
+    actualTemp = readTemp();
+    serialWrite(actualTemp);
+
+    tempReadTime = millis();
+  }
 
   int buttonState = digitalRead(BUTTON_PIN);
-  
-  if ( buttonState == HIGH) {
-    Temp t = readTemp();
-  
-    lcdWrite(t);
-    serialWrite(t);
-    
+
+  if ( first || buttonState == HIGH ) {
+    first = false;
+    lcdWrite(actualTemp);
     displayOn();
-    
-    delay(TIME_ON);
-  } else {
+    delay(DISPLAY_ON_INTERVAL);
     displayOff();
   }
 }
@@ -67,7 +74,7 @@ void lcdWrite(Temp t) {
     lcd.print( 'C' );
 
     // Humidity
-    lcd.setCursor( 0, 0 );
+    lcd.setCursor( 0, 1 );
     lcd.print("Hum.: ");
     lcd.print( t.humidity, 1 );
     lcd.print( '%' );
@@ -81,13 +88,13 @@ void serialWrite(Temp t) {
 }
 
 void displayOn() {
-    lcd.display();
-    digitalWrite(BACK_LIGHT_PIN, HIGH);
+  lcd.display();
+  digitalWrite(BACK_LIGHT_PIN, HIGH);
 }
 
 void displayOff() {
-    lcd.noDisplay();
-    digitalWrite(BACK_LIGHT_PIN, LOW);
+  lcd.noDisplay();
+  digitalWrite(BACK_LIGHT_PIN, LOW);
 }
 
 
