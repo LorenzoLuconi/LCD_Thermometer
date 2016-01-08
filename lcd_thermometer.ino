@@ -3,13 +3,11 @@
 
 #define DHTPIN 8
 #define DHTTYPE DHT22
+#define BACKLIGHT_PIN 13
+#define BUTTON_PIN 7
 
 DHT dht(DHTPIN, DHTTYPE);
 LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
-
-const int BACK_LIGHT_PIN = 13;
-const int TEMP_PIN = 0;
-const int BUTTON_PIN = 7;
 
 const int DISPLAY_ON_INTERVAL = 10000;
 const long TEMP_READ_INTERVAL = 60000 * 5;
@@ -27,14 +25,14 @@ bool first = true;
 int buttonState = LOW;
 int prevButtonState = LOW;
 
-int option = 0;
+int  option = 0;
 long tempReadTime = 0;
 long displayOnTime = 0;
 
 void setup() {
   Serial.begin(9600);
   
-  pinMode(BACK_LIGHT_PIN, OUTPUT);
+  pinMode(BACKLIGHT_PIN, OUTPUT);
   pinMode(BUTTON_PIN, INPUT);
   pinMode(DHTPIN, INPUT);
   
@@ -120,23 +118,24 @@ void lcdWrite(Temp t) {
 
 
 void serialWrite(Temp t) {
-  Serial.print("Temperature: ");
-  Serial.print(t.temp, 2);
-  Serial.print("        Humidity:");
-  Serial.println(t.humidity, 0);
+  Serial.print("Temp: ");
+  Serial.print(t.temp, 1);
+  Serial.print(" - Humidity: ");
+  Serial.print(t.humidity, 0);
+  Serial.println("%");
 }
 
 void displayOn() {
   displayOnTime = millis();
   lcd.display();
-  digitalWrite(BACK_LIGHT_PIN, HIGH);
+  digitalWrite(BACKLIGHT_PIN, HIGH);
 }
 
 void displayOff() {
   
   if ( displayOnTime != 0 && displayOnTime + DISPLAY_ON_INTERVAL < millis() ) {
     lcd.noDisplay();
-    digitalWrite(BACK_LIGHT_PIN, LOW);
+    digitalWrite(BACKLIGHT_PIN, LOW);
     displayOnTime = 0;
     option = 0; 
   }
