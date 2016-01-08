@@ -137,10 +137,11 @@ void displayOn() {
 
 void displayOff() {
   
-  if ( displayMode > 0 && displayOnTime + DISPLAY_ON_INTERVAL < millis() ) {
+  if ( displayOnTime != 0 && displayOnTime + DISPLAY_ON_INTERVAL < millis() ) {
     lcd.noDisplay();
     digitalWrite(BACK_LIGHT_PIN, LOW);
-    displayMode = 0;
+    displayOnTime = 0;
+    displayMode = 0; 
   }
 }
 
