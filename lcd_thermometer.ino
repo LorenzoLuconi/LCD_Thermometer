@@ -117,7 +117,7 @@ void lcdWrite(Temp t) {
     lcd.print( 'C' );
 
     lcd.print( " - ");
-    lcd.print( t.humidity, 1 );
+    lcd.print( t.humidity, 0 );
     lcd.print( '%' );
 }
 
