@@ -27,7 +27,7 @@ bool first = true;
 int buttonState = LOW;
 int prevButtonState = LOW;
 
-int displayMode = 0;
+int option = 0;
 long tempReadTime = 0;
 long displayOnTime = 0;
 
@@ -67,21 +67,20 @@ void loop() {
   int buttonState = digitalRead(BUTTON_PIN);
 
   if ( first || ( buttonState == HIGH && prevButtonState == LOW ) ) {
-    displayMode++;
     first = false;
 
-    switch ( displayMode ) {
-      case 1:
+    switch ( option ) {
+      case 0:
         lcd.clear();
         lcd.print("Attuale");
         lcdWrite(actualTemp);
       break;
-      case 2:
+      case 1:
         lcd.clear();
         lcd.print("Minima");
         lcdWrite(minTemp);       
       break;
-      case 3:
+      case 2:
         lcd.clear();
         lcd.print("Massima");
         lcdWrite(maxTemp);        
@@ -93,14 +92,12 @@ void loop() {
       
     displayOn();  
     
-    if ( displayMode > 2 ) {
-      displayMode = 0;
+    if ( option++ >= 2 ) {
+      option = 0;
     }
-    prevButtonState = HIGH;
-    delay(200);
-  } else {
-    prevButtonState = LOW;
-  }
+  } 
+
+  prevButtonState = buttonState;
   
   displayOff();
 }
@@ -141,7 +138,7 @@ void displayOff() {
     lcd.noDisplay();
     digitalWrite(BACK_LIGHT_PIN, LOW);
     displayOnTime = 0;
-    displayMode = 0; 
+    option = 0; 
   }
 }
 
